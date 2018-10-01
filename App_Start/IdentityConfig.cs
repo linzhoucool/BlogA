@@ -11,6 +11,9 @@ using Microsoft.AspNet.Identity.Owin;
 using Microsoft.Owin;
 using Microsoft.Owin.Security;
 using BlogApplication.Models;
+using System.Net.Mail;
+using System.Web.Configuration;
+using System.Net;
 
 namespace BlogApplication
 {
@@ -18,8 +21,13 @@ namespace BlogApplication
     {
         public Task SendAsync(IdentityMessage message)
         {
-            // Plug in your email service here to send an email.
-            return Task.FromResult(0);
+            var personalEmailService = new PersonalEmailService();
+            var mailMessage = new MailMessage(
+               WebConfigurationManager.AppSettings["emailto"],
+               message.Destination
+               );
+            mailMessage.IsBodyHtml = true;
+            return personalEmailService.SendAsync(mailMessage);
         }
     }
 
@@ -105,5 +113,41 @@ namespace BlogApplication
         {
             return new ApplicationSignInManager(context.GetUserManager<ApplicationUserManager>(), context.Authentication);
         }
+    }
+}
+
+
+
+public class PersonalEmail
+{
+    public async Task SendAsync(MailMessage message)
+    {
+        var GmailUsername = WebConfigurationManager.AppSettings["username"];
+        var GmailPassword = WebConfigurationManager.AppSettings["password"];
+        var host = WebConfigurationManager.AppSettings["host"];
+        int port = Convert.ToInt32(WebConfigurationManager.AppSettings["port"]);
+
+
+        using (var smtp = new SmtpClient()
+        {
+            Host = host,
+            Port = port,
+            EnableSsl = true,
+            DeliveryMethod = SmtpDeliveryMethod.Network,
+            UseDefaultCredentials = false,
+            Credentials = new NetworkCredential(GmailUsername, GmailPassword)
+        })
+        {
+            try
+            {
+                await smtp.SendMailAsync(message);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+                await Task.FromResult(0);
+
+            }
+        };
     }
 }

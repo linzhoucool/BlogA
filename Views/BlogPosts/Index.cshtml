@@ -1,76 +1,107 @@
-﻿@model IEnumerable<BlogApplication.Models.BlogPost>
+﻿
+@using PagedList;
+@using PagedList.Mvc;
+@model IPagedList<BlogApplication.Models.BlogPost>
 
 @{
     ViewBag.Title = "Index";
+    var pagedList = (IPagedList)Model;
 }
 
 <h2>Index</h2>
 
+@Html.ActionLink("Create New", "Create")
+
+
+
 <p>
-    @Html.ActionLink("Create New", "Create")
+    @if (User.Identity.IsAuthenticated && User.IsInRole("Admin"))
+    {
+        @Html.ActionLink("Create New", "Create")
+    }
 </p>
+
+
+
+@using (Html.BeginForm("Index", "BlogPosts", FormMethod.Get))
+{
+    <input type="text" class="form-control" name="searchString" placeholder="Search for posts" value="@ViewBag.SearchString"/>
+    <input type="submit" class="btn btn-primary" value="Search!" />
+}
+
+
 <table class="table">
     <tr>
         <th>
-            @Html.DisplayNameFor(model => model.Created)
+            @Html.DisplayName("Created")
         </th>
         <th>
-            @Html.DisplayNameFor(model => model.Updated)
+            @Html.DisplayName("Updated")
         </th>
         <th>
-            @Html.DisplayNameFor(model => model.Title)
+            @Html.DisplayName("Title")
         </th>
         <th>
-            @Html.DisplayNameFor(model => model.Slug)
+            @Html.DisplayName("Slug")
         </th>
         <th>
-            @Html.DisplayNameFor(model => model.Body)
+            @Html.DisplayName("Body")
         </th>
         <th>
-            @Html.DisplayNameFor(model => model.MediaUrl)
+            @Html.DisplayName("MediaUrl")
         </th>
         <th>
-            @Html.DisplayNameFor(model => model.Published)
+            @Html.DisplayName("Published")
         </th>
         <th></th>
     </tr>
 
-@foreach (var item in Model) {
-    <tr>
-        <td>
-            @Html.DisplayFor(modelItem => item.Created)
-        </td>
-        <td>
-            @Html.DisplayFor(modelItem => item.Updated)
-        </td>
-        <td>
-            @Html.DisplayFor(modelItem => item.Title)
-        </td>
-        <td>
-            @Html.DisplayFor(modelItem => item.Slug)
-        </td>
-        <td>
-            @Html.DisplayFor(modelItem => item.Body)
-        </td>
-        <td>
-           @*@Html.DisplayFor(model => model.MediaUrl)*@
+    @foreach (var item in Model)
+    {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.Created)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Updated)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Title)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Slug)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Body)
+            </td>
+            <td>
+                @*@Html.DisplayFor(model => model.MediaUrl)*@
 
-            @if (item.MediaUrl != null)
-            {
+                @if (item.MediaUrl != null)
+                {
 
-            <img class="img-responsive" src="@item.MediaUrl" alt="Saber">
-            }
+                    <img class="img-responsive" src="@item.MediaUrl" alt="Saber">
+                }
 
-        </td>
-        <td>
-            @Html.DisplayFor(modelItem => item.Published)
-        </td>
-        <td>
-            @Html.ActionLink("Edit", "Edit", new { id=item.Id }) |
-            @Html.ActionLink("Details", "Details", new { id=item.Id }) |
-            @Html.ActionLink("Delete", "Delete", new { id=item.Id })
-        </td>
-    </tr>
-}
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Published)
+            </td>
+            <td>
+                @Html.ActionLink("Edit", "Edit", new { id = item.Id }) |
+                @Html.ActionLink("Details", "Details", new { id = item.Id }) |
+                @Html.ActionLink("Delete", "Delete", new { id = item.Id })
+            </td>
+        </tr>
+    }
+
+    Page @(Model.PageCount < Model.PageNumber ? 0 : Model.PageNumber) of
+    @Model.PageCount	
+    @Html.PagedListPager(Model, page => Url.Action("Index", new { page, ViewBag.SearchString })) 
 
 </table>
+
+
+
+
+
